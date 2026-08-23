@@ -24,9 +24,14 @@ class Command(BaseCommand):
             ("gest.sow", Utilisateur.Role.GESTIONNAIRE),
             ("admin.alpha", Utilisateur.Role.ADMINISTRATEUR),
         ]:
+            est_admin = (role == Utilisateur.Role.ADMINISTRATEUR)
             compte, cree = Utilisateur.objects.get_or_create(
                 username=username,
-                defaults={"role": role, "is_staff": role == Utilisateur.Role.ADMINISTRATEUR},
+                defaults={
+                    "role": role,
+                    "is_staff": est_admin,
+                    "is_superuser": est_admin,
+                },
             )
             if cree:
                 compte.set_password(MOT_DE_PASSE_DEMO)

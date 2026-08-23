@@ -1,8 +1,8 @@
 # API de réservation des ressources pédagogiques
 
-Projet Master 1 IAGE — Sujet 3 (Conception d'API avec Django et Django REST Framework)
+Projet Master 1 IAGE — Sujet 3 
 
-Application web permettant aux enseignants de réserver des ressources (salles, matériels), aux gestionnaires de valider ou refuser les demandes, et aux administrateurs de gérer le parc et les comptes.
+NB: j'utilise macbook 
 
 ---
 
