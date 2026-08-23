@@ -42,7 +42,9 @@ Les comptes suivants sont créés automatiquement par la commande `jeu_de_donnee
 | `prof.malick` | Enseignant | `Demo1234!` | Peut effectuer des demandes et gérer ses propres réservations |
 | `prof.diallo` | Enseignant | `Demo1234!` | Peut effectuer des demandes et gérer ses propres réservations |
 | `gest.sow` | Gestionnaire | `Demo1234!` | Peut valider, refuser (avec motif) et clôturer les demandes |
-| `admin.alpha` | Administrateur | `Demo1234!` | Gestion globale du parc et des utilisateurs |
+| `admin.alpha` | Administrateur | `Demo1234!` | Gestion globale du parc et des utilisateurs (Superutilisateur) |
+
+*Pour créer un superadministrateur sur-mesure : `python manage.py createsuperuser`*
 
 ---
 
