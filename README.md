@@ -1,112 +1,101 @@
-# API de réservation des ressources pédagogiques 🏫
+# API de réservation des ressources pédagogiques
 
-> **Master 1 IAGE — Sujet 3 : Conception d'API avec Django & Django REST Framework**
+Projet Master 1 IAGE — Sujet 3 (Conception d'API avec Django et Django REST Framework)
 
-Un **enseignant** demande un créneau sur une salle ou un matériel ; un **gestionnaire** valide ou refuse ; un **administrateur** gère le parc et les comptes.
+Application web permettant aux enseignants de réserver des ressources (salles, matériels), aux gestionnaires de valider ou refuser les demandes, et aux administrateurs de gérer le parc et les comptes.
 
 ---
 
-## ⚡ 1. Démarrage rapide en local (3 minutes)
+## 1. Installation en local
 
 ```bash
 # 1. Créer et activer l'environnement virtuel
 python3 -m venv venv
-source venv/bin/activate        # On Windows : venv\Scripts\activate
+source venv/bin/activate
 
 # 2. Installer les dépendances
 pip install -r requirements.txt
 
-# 3. Créer le fichier de configuration local (.env)
+# 3. Fichier de configuration
 cp .env.example .env
 
-# 4. Préparer la base de données SQLite
+# 4. Appliquer les migrations
 python manage.py migrate
 
-# 5. Charger le jeu de données de démo
+# 5. Charger les données de démonstration
 python manage.py jeu_de_donnees
 
-# 6. Lancer l'API
+# 6. Lancer le serveur
 python manage.py runserver
 ```
 
-👉 Ouvrez ensuite **[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)** : toute l'API y est cliquable et documentée avec Swagger !
+L'API et sa documentation Swagger sont accessibles sur : http://localhost:8000/api/docs/
 
 ---
 
-### 🔑 Comptes de démonstration disponibles
+## 2. Comptes de test
 
-| Identifiant   | Rôle            | Mot de passe | Ce qu'il a le droit de faire |
-|---------------|-----------------|--------------|------------------------------|
-| `prof.malick` | Enseignant      | `Demo1234!`  | Faire des demandes, voir et annuler uniquement ses réservations |
-| `prof.diallo` | Enseignant      | `Demo1234!`  | Faire des demandes, voir et annuler uniquement ses réservations |
-| `gest.sow`    | Gestionnaire    | `Demo1234!`  | Valider, refuser (avec motif), clôturer les demandes et gérer les indisponibilités |
-| `admin.alpha` | Administrateur  | `Demo1234!`  | Gérer les utilisateurs, les ressources (salles/matériels) et tout arbitrer |
+Les comptes suivants sont créés automatiquement par la commande `jeu_de_donnees` :
 
-*Pour créer un superadministrateur complet : `python manage.py createsuperuser`*
+| Identifiant | Rôle | Mot de passe | Description |
+|---|---|---|---|
+| `prof.malick` | Enseignant | `Demo1234!` | Peut effectuer des demandes et gérer ses propres réservations |
+| `prof.diallo` | Enseignant | `Demo1234!` | Peut effectuer des demandes et gérer ses propres réservations |
+| `gest.sow` | Gestionnaire | `Demo1234!` | Peut valider, refuser (avec motif) et clôturer les demandes |
+| `admin.alpha` | Administrateur | `Demo1234!` | Gestion globale du parc et des utilisateurs |
 
 ---
 
-## 🐳 2. Démarrage avec Docker (Production / Test)
+## 3. Endpoints principaux
+
+Toutes les routes sont préfixées par `/api/v1/` :
+
+- **Authentification (JWT)** :
+  - `POST /api/v1/auth/login/` (obtention des tokens access/refresh)
+  - `POST /api/v1/auth/refresh/` (renouvellement du token)
+
+- **Ressources et Indisponibilités** :
+  - `GET /api/v1/ressources/` (liste des salles et équipements)
+  - `GET /api/v1/indisponibilites/` (liste des périodes de maintenance)
+
+- **Réservations** :
+  - `GET /api/v1/reservations/` (liste selon les droits)
+  - `POST /api/v1/reservations/` (nouvelle demande)
+  - `POST /api/v1/reservations/{id}/valider/` (validation par gestionnaire)
+  - `POST /api/v1/reservations/{id}/refuser/` (refus avec motif)
+  - `POST /api/v1/reservations/{id}/annuler/` (annulation par l'auteur)
+  - `POST /api/v1/reservations/{id}/terminer/` (clôture)
+
+- **Supervision** :
+  - `GET /health/` (état de l'API et de la base de données)
+
+---
+
+## 4. Tests automatisés
+
+Pour lancer la suite de 69 tests et vérifier la couverture du code :
 
 ```bash
-# 1. Préparer la configuration Docker
-cp .env.example .env
-
-# 2. Démarrer PostgreSQL, l'API (Gunicorn) et Nginx
-docker compose up --build -d
-
-# 3. Appliquer les migrations et injecter les données dans Docker
-docker compose exec api python manage.py migrate
-docker compose exec api python manage.py jeu_de_donnees
-
-# 4. Lancer la suite de 69 tests dans Docker
-docker compose exec api python manage.py test
-```
-
-👉 Accès à l'API via Nginx : **[http://localhost/api/docs/](http://localhost/api/docs/)**  
-👉 Vérification de santé : `curl http://localhost/health/`
-
----
-
-## 📌 3. Résumé des routes de l'API (`/api/v1/`)
-
-### 🔐 Authentification (JWT)
-- `POST /api/v1/auth/login/` ➔ Connexion (reçoit l'access token et le refresh token)
-- `POST /api/v1/auth/refresh/` ➔ Renouvelle le jeton d'accès
-- `POST /api/v1/auth/verify/` ➔ Vérifie la validité d'un jeton
-
-### 🏫 Ressources & Indisponibilités
-- `GET /api/v1/ressources/` ➔ Liste le parc (salles, matériels)
-- `POST /api/v1/ressources/` ➔ Ajoute une ressource (Administrateur uniquement)
-- `GET /api/v1/indisponibilites/` ➔ Liste les plages bloquées pour maintenance
-
-### 📅 Réservations (Machine à états)
-- `GET /api/v1/reservations/` ➔ Liste des réservations (Filtrée selon le rôle)
-- `POST /api/v1/reservations/` ➔ Déposer une demande (Enseignant)
-- `POST /api/v1/reservations/{id}/valider/` ➔ Valider la demande (Gestionnaire / Admin)
-- `POST /api/v1/reservations/{id}/refuser/` ➔ Refuser avec motif (Gestionnaire / Admin)
-- `POST /api/v1/reservations/{id}/annuler/` ➔ Annuler la demande (Auteur / Gestionnaire)
-- `POST /api/v1/reservations/{id}/terminer/` ➔ Clôturer la séance terminée
-
----
-
-## 🧪 4. Exécuter les tests & mesurer la couverture
-
-```bash
-# Lancer les 69 tests automatisés
+# Lancer les tests
 python manage.py test
 
-# Calculer la couverture du code (~95 %)
+# Vérifier la couverture
 coverage run manage.py test
 coverage report -m
 ```
 
 ---
 
-## 🎯 5. Scénario de test rapide (3 minutes)
+## 5. Déploiement Docker
 
-1. Connectez-vous avec `prof.malick` sur `POST /auth/login/` et copiez le jeton `access`.
-2. Déposez une réservation sur le **Laboratoire réseau** sur `POST /reservations/` ➔ **HTTP 201 Created**, statut `en_attente`.
-3. Connectez-vous avec `prof.diallo` et tentez d'accéder à la réservation de Malick ➔ **HTTP 404 Not Found** *(Isolation des données)*.
-4. Connectez-vous avec `gest.sow` et validez la réservation de Malick ➔ **HTTP 200 OK**, statut `validee`.
-5. Tentez de valider une deuxième réservation concurrente sur le même créneau ➔ **HTTP 409 Conflict** *(Protection contre les chevauchements)*.
+```bash
+# Lancer la pile (PostgreSQL + API + Nginx)
+docker compose up --build -d
+
+# Migrations et données dans Docker
+docker compose exec api python manage.py migrate
+docker compose exec api python manage.py jeu_de_donnees
+```
+
+Accès Swagger via Docker : http://localhost/api/docs/
+
