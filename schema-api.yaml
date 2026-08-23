@@ -1,0 +1,817 @@
+openapi: 3.0.3
+info:
+  title: API de reservation des ressources pedagogiques
+  version: 1.0.0
+  description: 'Gestion des salles specialisees et des materiels pedagogiques : demande
+    de reservation par un enseignant, arbitrage par un gestionnaire, administration
+    du parc.'
+paths:
+  /api/v1/auth/login/:
+    post:
+      operationId: api_v1_auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JetonAvecRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JetonAvecRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JetonAvecRole'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JetonAvecRole'
+          description: ''
+  /api/v1/auth/refresh/:
+    post:
+      operationId: api_v1_auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/auth/verify/:
+    post:
+      operationId: api_v1_auth_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
+  /api/v1/indisponibilites/:
+    get:
+      operationId: api_v1_indisponibilites_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIndisponibiliteList'
+          description: ''
+    post:
+      operationId: api_v1_indisponibilites_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Indisponibilite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Indisponibilite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Indisponibilite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Indisponibilite'
+          description: ''
+  /api/v1/indisponibilites/{id}/:
+    get:
+      operationId: api_v1_indisponibilites_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) indisponibilite.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Indisponibilite'
+          description: ''
+    delete:
+      operationId: api_v1_indisponibilites_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) indisponibilite.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reservations/:
+    get:
+      operationId: api_v1_reservations_list
+      summary: Lister les reservations visibles par l'appelant
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReservationLectureList'
+          description: ''
+    post:
+      operationId: api_v1_reservations_create
+      summary: Deposer une demande de reservation
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReservationCreation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReservationCreation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationCreation'
+          description: ''
+  /api/v1/reservations/{id}/:
+    get:
+      operationId: api_v1_reservations_retrieve
+      summary: Consulter une reservation
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) reservation.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationLecture'
+          description: ''
+  /api/v1/reservations/{id}/annuler/:
+    post:
+      operationId: api_v1_reservations_annuler_create
+      summary: Annuler sa propre reservation
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) reservation.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationLecture'
+          description: ''
+  /api/v1/reservations/{id}/refuser/:
+    post:
+      operationId: api_v1_reservations_refuser_create
+      description: Reserve aux gestionnaires. Le commentaire est obligatoire.
+      summary: Refuser une reservation en attente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) reservation.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Refus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Refus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Refus'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refus'
+          description: ''
+  /api/v1/reservations/{id}/terminer/:
+    post:
+      operationId: api_v1_reservations_terminer_create
+      summary: Cloturer une reservation dont le creneau est passe
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) reservation.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationLecture'
+          description: ''
+  /api/v1/reservations/{id}/valider/:
+    post:
+      operationId: api_v1_reservations_valider_create
+      description: Reserve aux gestionnaires. Renvoie 409 si le creneau est deja occupe
+        par une reservation validee ou couvert par une indisponibilite.
+      summary: Valider une reservation en attente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) reservation.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationLecture'
+          description: ''
+  /api/v1/ressources/:
+    get:
+      operationId: api_v1_ressources_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRessourceList'
+          description: ''
+    post:
+      operationId: api_v1_ressources_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ressource'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Ressource'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Ressource'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ressource'
+          description: ''
+  /api/v1/ressources/{id}/:
+    get:
+      operationId: api_v1_ressources_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) ressource.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ressource'
+          description: ''
+    patch:
+      operationId: api_v1_ressources_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un(une) valeur entière unique identifiant ce(cette) ressource.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRessource'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRessource'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRessource'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ressource'
+          description: ''
+  /health/:
+    get:
+      operationId: health_retrieve
+      description: Utilise par Docker Compose et la supervision. Route publique.
+      summary: Etat de sante de l'API
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  database:
+                    type: string
+              examples:
+                ToutVaBien:
+                  value:
+                    status: ok
+                    database: up
+                  summary: Tout va bien
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  database:
+                    type: string
+          description: ''
+components:
+  schemas:
+    Indisponibilite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ressource:
+          type: integer
+        ressource_nom:
+          type: string
+          readOnly: true
+        debut:
+          type: string
+          format: date-time
+        fin:
+          type: string
+          format: date-time
+        motif:
+          type: string
+          maxLength: 255
+      required:
+      - debut
+      - fin
+      - id
+      - motif
+      - ressource
+      - ressource_nom
+    JetonAvecRole:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    PaginatedIndisponibiliteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Indisponibilite'
+    PaginatedReservationLectureList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReservationLecture'
+    PaginatedRessourceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ressource'
+    PatchedRessource:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 150
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        type_libelle:
+          type: string
+          readOnly: true
+        capacite:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Nombre de places. A renseigner pour les salles uniquement.
+        active:
+          type: boolean
+          description: Une ressource inactive ne peut plus etre reservee (regle 3).
+        description:
+          type: string
+        cree_le:
+          type: string
+          format: date-time
+          readOnly: true
+    Refus:
+      type: object
+      properties:
+        commentaire:
+          type: string
+          description: Motif du refus, communique a l'enseignant.
+          maxLength: 1000
+      required:
+      - commentaire
+    ReservationCreation:
+      type: object
+      description: Ce que l'API ACCEPTE en POST. Severe.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ressource:
+          type: integer
+        debut:
+          type: string
+          format: date-time
+        fin:
+          type: string
+          format: date-time
+        motif:
+          type: string
+        nombre_participants:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Nombre de participants
+      required:
+      - debut
+      - fin
+      - id
+      - motif
+      - ressource
+    ReservationLecture:
+      type: object
+      description: Ce que l'API RENVOIE.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ressource:
+          allOf:
+          - $ref: '#/components/schemas/RessourceResume'
+          readOnly: true
+        demandeur:
+          type: string
+          readOnly: true
+        debut:
+          type: string
+          format: date-time
+        fin:
+          type: string
+          format: date-time
+        duree_heures:
+          type: number
+          format: double
+          description: Duree du creneau en heures, arrondie au dixieme.
+          readOnly: true
+        motif:
+          type: string
+        nombre_participants:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Nombre de participants
+        statut:
+          $ref: '#/components/schemas/StatutEnum'
+        statut_libelle:
+          type: string
+          readOnly: true
+        commentaire_gestionnaire:
+          type: string
+          title: Commentaire du gestionnaire
+          description: Obligatoire en cas de refus (regle 9).
+        cree_le:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cree_le
+      - debut
+      - demandeur
+      - duree_heures
+      - fin
+      - id
+      - motif
+      - ressource
+      - statut_libelle
+    Ressource:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 150
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        type_libelle:
+          type: string
+          readOnly: true
+        capacite:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Nombre de places. A renseigner pour les salles uniquement.
+        active:
+          type: boolean
+          description: Une ressource inactive ne peut plus etre reservee (regle 3).
+        description:
+          type: string
+        cree_le:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cree_le
+      - id
+      - nom
+      - type_libelle
+    RessourceResume:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 150
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        capacite:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Nombre de places. A renseigner pour les salles uniquement.
+      required:
+      - id
+      - nom
+    StatutEnum:
+      enum:
+      - en_attente
+      - validee
+      - refusee
+      - annulee
+      - terminee
+      type: string
+      description: |-
+        * `en_attente` - En attente
+        * `validee` - Validee
+        * `refusee` - Refusee
+        * `annulee` - Annulee
+        * `terminee` - Terminee
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenVerify:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+      required:
+      - token
+    TypeEnum:
+      enum:
+      - salle
+      - equipement
+      type: string
+      description: |-
+        * `salle` - Salle
+        * `equipement` - Equipement
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
