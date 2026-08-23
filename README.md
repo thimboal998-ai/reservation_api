@@ -53,7 +53,7 @@ Les comptes suivants sont créés automatiquement par la commande `jeu_de_donnee
 Toutes les routes sont préfixées par `/api/v1/` :
 
 - **Authentification (JWT)** :
-  - `POST /api/v1/auth/login/` (obtention des tokens access/refresh)
+  - `POST /api/v1/auth/login/` (tokens access/refresh)
   - `POST /api/v1/auth/refresh/` (renouvellement du token)
 
 - **Ressources et Indisponibilités** :
@@ -75,7 +75,7 @@ Toutes les routes sont préfixées par `/api/v1/` :
 
 ## 4. Tests automatisés
 
-Pour lancer la suite de 69 tests et vérifier la couverture du code :
+Pour lancer la suite de 69 tests et vérifier le code :
 
 ```bash
 # Lancer les tests
@@ -91,7 +91,7 @@ coverage report -m
 ## 5. Déploiement Docker
 
 ```bash
-# Lancer la pile (PostgreSQL + API + Nginx)
+# Lancer la pile (PostgreSQL + API + Nginx) pour ma part
 docker compose up --build -d
 
 # Migrations et données dans Docker
